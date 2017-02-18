@@ -1,0 +1,517 @@
+"-------------------------------------------------------------------------------
+" @author:limit
+"-------------------------------------------------------------------------------
+
+set nocompatible
+let mapleader="\<space>"
+set encoding=utf-8
+
+"       Plugins bundles {{{1
+"-------------------------------------------------------------------------------
+call plug#begin('~/.vim/plugged')
+
+" folder
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+
+" complet
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer', 'for': ['c', 'cpp', 'python', 'css', 'html'] }
+
+" UI
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'jeetsukumaran/vim-buffergator'
+
+" FZF
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install -all' }
+Plug 'junegunn/fzf.vim'
+
+" git
+Plug 'airblade/vim-gitgutter'
+
+Plug 'majutsushi/tagbar'
+Plug 'Shougo/denite.nvim'
+Plug 'vim-utils/vim-man'
+
+"Plug 'ervandew/supertab'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+" undo tree
+Plug 'sjl/gundo.vim'
+
+Plug 'nanotech/jellybeans.vim'
+Plug 'octol/vim-cpp-enhanced-highlight', { 'for': ['cpp'] }
+
+" for test
+"Plug 'shaneharper/vim-rtags', { 'dir': '~/.vim/rtags' }
+"Plug 'lyuts/vim-rtags'
+"" 定義へジャンプ
+"nnoremap <silent> <F3> :call rtags#JumpTo()<CR>
+"" 参照へジャンプ
+"nnoremap <silent> <F4> :<C-u>Unite<Space>rtags/references<CR>
+"" クラス・関数定義内にいたらその先頭へジャンプ
+"nnoremap <silent> <F5> :call rtags#JumpToParent()<CR>
+
+call plug#end()
+"-------------------------------------------------------------------------- }}}1
+
+"       Plugins Setting {{{1
+"-------------------------------------------------------------------------------
+"       Tagbar      {{{2
+"-------------------------------------------------------------------------------
+nmap <F9> :TagbarToggle<CR>
+let g:tagbar_left = 1
+let g:tagbar_width = 30
+let g:tagbar_sort = 0
+if has('win32') || has('win64')
+  let g:tagbar_ctags_bin = windows_ctags_path
+endif
+"-------------------------------------------------------------------------- }}}2
+"       NERD TREE       {{{2
+"-------------------------------------------------------------------------------
+map <F10> :NERDTreeToggle<CR>
+map <C-F10> :NERDTreeFind<CR>
+map <leader>e :NERDTreeFind<CR>
+
+let NERDTreeQuitOnOpen = 1
+let NERDTreeMinimalUI = 1
+let NERDTreeShowBookmarks = 1
+let NERDTreeChDirMode = 2
+" Set the window width
+let NERDTreeWinSize = 30
+" Set the window position "Set NERD Tree on the right
+let NERDTreeWinPos = "right"
+" Auto centre
+"let NERDTreeAutoCenter = 1
+" Not Highlight the cursor line
+let NERDTreeHighlightCursorline = 1
+"let NERDTreeShowLineNumbers=0
+let NERDTreeIgnore=['.o$[[file]]','\.swp$''\.exe$','\~$', '\.a$', '^\.git$']
+"---------------------------------------------------------------------------}}}2
+"       AirLine             {{{2
+"-------------------------------------------------------------------------------
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tagbar#enabled = 1
+let g:airline#extensions#whitespace#enabled = 1
+let g:airline#extensions#syntastic#enabled = 0
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#bufferline#enabled = 1
+"-------------------------------------------------------------------------- }}}2
+"       Cscope              {{{2
+"-------------------------------------------------------------------------------
+if has("cscope")
+
+  " use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
+  set cscopetag
+
+  " check cscope for definition of a symbol before checking ctags: set to 1
+  " if you want the reverse search order.
+  set csto=1
+
+  " add any cscope database in current directory
+  if !exists("g:cscope_max_depth")
+    let g:cscope_max_depth = 6
+  endif
+
+  if !exists("g:cscope_quickfix") || g:cscope_quickfix != 0
+    :set cscopequickfix=s-,c-,d-,i-,t-,e-
+  endif
+
+
+  if $CSCOPE_DB != ""
+    cs add $CSCOPE_DB
+  else
+    let cscope_file = "cscope.out"
+    let g:cscope_i = 0
+
+    while g:cscope_i < g:cscope_max_depth
+      if filereadable(cscope_file)
+        :execute "cs add " . cscope_file
+        break
+      else
+        let cscope_file = "../" . cscope_file
+        let g:cscope_i += 1
+      endif
+    endwhile
+
+  endif
+
+  " show msg when any other cscope db added
+  set cscopeverbose
+
+  " The following maps all invoke one of the following cscope search types:
+  "
+  "   's'   symbol: find all references to the token under cursor
+  "   'g'   global: find global definition(s) of the token under cursor
+  "   'c'   calls:  find all calls to the function name under cursor
+  "   't'   text:   find all instances of the text under cursor
+  "   'e'   egrep:  egrep search for the word under cursor
+  "   'f'   file:   open the filename under cursor
+  "   'i'   includes: find files that include the filename under cursor
+  "   'd'   called: find functions that function under cursor calls
+
+  nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-\>t :cs find t <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-\>e :cs find e <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-\>f :cs find f <C-R>=expand("<cfile>")<CR><CR>
+  nmap <C-\>i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+  nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>
+
+  nmap <C-@>s :scs find s <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@>g :scs find g <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@>c :scs find c <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@>t :scs find t <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@>e :scs find e <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@>f :scs find f <C-R>=expand("<cfile>")<CR><CR>
+  nmap <C-@>i :scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+  nmap <C-@>d :scs find d <C-R>=expand("<cword>")<CR><CR>
+
+  nmap <C-@><C-@>s :vert scs find s <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@><C-@>g :vert scs find g <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@><C-@>c :vert scs find c <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@><C-@>t :vert scs find t <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@><C-@>e :vert scs find e <C-R>=expand("<cword>")<CR><CR>
+  nmap <C-@><C-@>f :vert scs find f <C-R>=expand("<cfile>")<CR><CR>
+  nmap <C-@><C-@>i :vert scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+  nmap <C-@><C-@>d :vert scs find d <C-R>=expand("<cword>")<CR><CR>
+
+  nmap <C-\>a :cs find
+endif
+"-------------------------------------------------------------------------- }}}2
+"       snipMate    {{{2
+let g:snips_author = 'limit'
+"-------------------------------------------------------------------------- }}}2
+"       acp    {{{2
+"-------------------------------------------------------------------------------
+"snipMate's Trigger Completion ~
+"let g:acp_enableAtStartup = 0
+"let g:acp_behaviorKeywordLength=4
+"let g:acp_behaviorSnipmateLength=1
+"let g:acp_mappingDriven = 1
+"let g:acp_behaviorSnipmateLength=1
+"-------------------------------------------------------------------------- }}}2
+" vim-buffergator {{{2
+"-------------------------------------------------------------------------------
+" Use the right side of the screen
+let g:buffergator_viewport_split_policy = 'B'
+
+" I want my own keymappings...
+let g:buffergator_suppress_keymaps = 1
+
+" Looper buffers
+"let g:buffergator_mru_cycle_loop = 1
+
+" Go to the previous buffer open
+nmap <leader>bj :BuffergatorMruCyclePrev<cr>
+
+" Go to the next buffer open
+nmap <leader>bk :BuffergatorMruCycleNext<cr>
+
+" View the entire list of buffers open
+nmap <leader>bl :BuffergatorOpen<cr>
+
+" Shared bindings from Solution #1 from earlier
+nmap <leader>bt :enew<cr>
+nmap <leader>bq :bp <BAR> bd #<cr>
+"-------------------------------------------------------------------------- }}}2
+"       YouCompleteMe    {{{2
+"-------------------------------------------------------------------------------
+let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_autoclose_preview_window_after_insertion = 1
+
+let g:ycm_global_ycm_extra_conf = '~/.vim/ycm_extra_conf.py'
+"let g:ycm_extra_conf_globlist = ['~/.config/nvim/ycm_extra_conf.py']
+" 關掉補全時的預覽窗口
+set completeopt=longest,menu
+" 允許 vim 加載 .ycm_extra_conf.py 文件，不再提示
+let g:ycm_confirm_extra_conf = 0
+let g:ycm_show_diagnostics_ui = 0
+"let g:ycm_filetype_whitelist = { 'c': 1, 'cpp': 1 }
+let g:ycm_filetype_blacklist = {
+      \ 'tagbar' : 1,
+      \ 'qf' : 1,
+      \ 'notes' : 1,
+      \ 'markdown' : 1,
+      \ 'unite' : 1,
+      \ 'text' : 1,
+      \ 'vimwiki' : 1,
+      \ 'pandoc' : 1,
+      \ 'infolog' : 1,
+      \ 'mail' : 1,
+      \ 'gitcommit' : 1
+      \}
+
+nnoremap <leader>jr :YcmDiags<CR>
+nnoremap <leader>jh :YcmCompleter GoToInclude<cr>
+nnoremap <leader>jd :YcmCompleter GoTo<cr>
+nnoremap <leader>jl :YcmCompleter GoToDeclaration<cr>
+nnoremap <leader>jf :YcmCompleter GoToDefinition<cr>
+nnoremap <leader>jx :YcmCompleter FixIt<cr>
+nnoremap <leader>jp :YcmCompleter GetParent<cr>
+nnoremap <leader>jt :YcmCompleter GetType<cr>
+nnoremap <leader>jo :YcmCompleter GetDoc<cr>
+"-------------------------------------------------------------------------- }}}2
+"       Ultisnips   {{{2
+"-------------------------------------------------------------------------------
+"" make YCM compatible with UltiSnips (using supertab)
+"let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
+"let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
+"let g:SuperTabDefaultCompletionType = '<C-n>'
+"
+"" better key bindings for UltiSnipsExpandTrigger
+"let g:UltiSnipsExpandTrigger = "<tab>"
+"let g:UltiSnipsJumpForwardTrigger = "<tab>"
+"let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+
+let g:UltiSnipsExpandTrigger = "<C-j>"
+let g:UltiSnipsJumpForwardTrigger = "<C-j>"
+let g:UltiSnipsJumpBackwardTrigger = "<C-k>"
+"-------------------------------------------------------------------------- }}}2
+"       Gunto       {{{2
+"-------------------------------------------------------------------------------
+if has('python3')
+  let g:gundo_prefer_python3 = 1
+endif
+nnoremap <F12> :GundoToggle<CR>
+"-------------------------------------------------------------------------- }}}2
+"       cpp-enhanced-highlight       {{{2
+"-------------------------------------------------------------------------------
+let g:cpp_class_scope_highlight = 1
+let g:cpp_experimental_simple_template_highlight = 1
+let g:cpp_experimental_template_highlight = 1
+"-------------------------------------------------------------------------- }}}2
+nmap K <Plug>(Man)
+"--- Plugins setting ------------------------------------------------------ }}}1
+
+"-------------------------------------------------------------------------------
+
+" sensible ---------------------------------------------------------------- {{{1
+" sensible.vim - Defaults everyone can agree on
+" Maintainer:   Tim Pope <http://tpo.pe/>
+" Version:      1.1
+
+if exists('g:loaded_sensible') || &compatible
+  finish
+else
+  let g:loaded_sensible = 1
+endif
+
+if has('autocmd')
+  filetype plugin indent on
+endif
+if has('syntax') && !exists('g:syntax_on')
+  syntax enable
+endif
+
+" Use :help 'option' to see the documentation for the given option.
+
+set autoindent
+set backspace=indent,eol,start
+set complete-=i
+set smarttab
+
+set nrformats-=octal
+
+set ttimeout
+set ttimeoutlen=100
+
+set incsearch
+" Use <C-L> to clear the highlighting of :set hlsearch.
+if maparg('<C-L>', 'n') ==# ''
+  nnoremap <silent> <C-L> :nohlsearch<C-R>=has('diff')?'<Bar>diffupdate':''<CR><CR><C-L>
+endif
+
+set laststatus=2
+set ruler
+set wildmenu
+
+if !&scrolloff
+  set scrolloff=1
+endif
+if !&sidescrolloff
+  set sidescrolloff=5
+endif
+set display+=lastline
+
+if &encoding ==# 'latin1' && has('gui_running')
+  set encoding=utf-8
+endif
+
+if &listchars ==# 'eol:$'
+  set listchars=tab:>\ ,trail:-,extends:>,precedes:<,nbsp:+
+endif
+
+if v:version > 703 || v:version == 703 && has("patch541")
+  set formatoptions+=j " Delete comment character when joining commented lines
+endif
+
+if has('path_extra')
+  setglobal tags-=./tags tags-=./tags; tags^=./tags;
+endif
+
+if &shell =~# 'fish$' && (v:version < 704 || v:version == 704 && !has('patch276'))
+  set shell=/bin/bash
+endif
+
+"set autoread
+
+if &history < 1000
+  set history=1000
+endif
+if &tabpagemax < 50
+  set tabpagemax=50
+endif
+if !empty(&viminfo)
+  set viminfo^=!
+endif
+"set sessionoptions-=options
+
+" Allow color schemes to do bright colors without forcing bold.
+if &t_Co == 8 && $TERM !~# '^linux\|^Eterm'
+  set t_Co=16
+endif
+
+" Load matchit.vim, but only if the user hasn't installed a newer version.
+if !exists('g:loaded_matchit') && findfile('plugin/matchit.vim', &rtp) ==# ''
+  runtime! macros/matchit.vim
+endif
+
+inoremap <C-U> <C-G>u<C-U>
+" }}}1 sensible ----------------------------------------------------------------
+
+"-------------------------------------------------------------------------------
+" No sound on errors
+set noerrorbells
+set novisualbell
+set t_vb=
+
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set smarttab
+
+
+"Turn on WiLd menu
+set wildmenu
+set wildignore=*.~,*.obj,*.tmp,*.001,*.~mp,*.hlp,*.swp,*.def,*.o
+set suffixes+=\.zip,\.gz
+set backspace=indent,eol,start  "set bs
+
+set ignorecase                  "set ic
+set hlsearch                    "set hls
+
+"Wrap lines
+set wrap
+set linebreak                       "set lbr
+
+"Smart indet
+set smartindent                     "set si
+
+"C-style indeting
+set cindent
+
+"Change buffer - without saving " Hide buffers when they are abandoned
+set hidden
+
+"set t_Co=256
+set termguicolors
+"colorscheme jellybeans
+colorscheme ir_black
+if &term =~# '^screen'
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+"let &t_8f = "[38:2:%lu:%lu:%lum"
+"let &t_8b = "[48:2:%lu:%lu:%lum"
+
+"" Make Vim recognize xterm escape sequences for Page and Arrow
+"" keys combined with modifiers such as Shift, Control, and Alt.
+"" See http://www.reddit.com/r/vim/comments/1a29vk/_/c8tze8p
+"if &term =~ '^screen'
+"  " Page keys http://sourceforge.net/p/tmux/tmux-code/ci/master/tree/FAQ
+"  execute "set t_kP=\e[5;*~"
+"  execute "set t_kN=\e[6;*~"
+"  " Arrow keys http://unix.stackexchange.com/a/34723
+"  execute "set <xUp>=\e[1;*A"
+"  execute "set <xDown>=\e[1;*B"
+"  execute "set <xRight>=\e[1;*C"
+"  execute "set <xLeft>=\e[1;*D"
+"endif
+
+if &term == "rxvt-unicode-256color"
+  set notermguicolors
+  set t_Co=256
+  "colorscheme tir_black
+  colorscheme jellybeans
+endif
+"let g:airline_theme='molokai'
+let g:airline_theme='jellybeans'
+
+set number
+set relativenumber
+"set tags=tags;
+set autochdir
+set list
+set listchars=tab:›\ ,trail:∙,extends:+,nbsp:<
+
+" reopening a file
+" Only do this part when compiled with support for autocommands
+if has("autocmd")
+  " When editing a file, always jump to the last cursor position
+  autocmd BufReadPost *
+        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+        \   exe "normal g'\"" |
+        \ endif
+endif
+
+"autocmd InsertEnter * set number norelativenumber
+"autocmd InsertLeave * set nonumber relativenumber
+
+autocmd FileType make set noexpandtab
+autocmd FileType python set noexpandtab
+
+nnoremap <silent> [b :bprev<CR>
+nnoremap <silent> ]b :bnext<CR>
+" Smart way to move btw. windows
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-h> <C-W>h
+map <C-l> <C-W>l
+
+" Quickfix Window   {{{1
+"--------------------------------------------------------------------------
+function! GetBufferList()
+  redir =>buflist
+  silent! ls
+  redir END
+  return buflist
+endfunction
+
+function! ToggleList(bufname, pfx)
+  let buflist = GetBufferList()
+  for bufnum in map(filter(split(buflist, '\n'), 'v:val =~ "'.a:bufname.'"'), 'str2nr(matchstr(v:val, "\\d\\+"))')
+    if bufwinnr(bufnum) != -1
+      exec(a:pfx.'close')
+      return
+    endif
+  endfor
+  if a:pfx == 'l' && len(getloclist(0)) == 0
+      echohl ErrorMsg
+      echo "Location List is Empty."
+      return
+  endif
+  let winnr = winnr()
+  exec(a:pfx.'open')
+  if winnr() != winnr
+    wincmd p
+  endif
+endfunction
+
+nmap <silent> <leader>l :call ToggleList("Location List", 'l')<CR>
+nmap <silent> <leader>q :call ToggleList("Quickfix List", 'c')<CR>
+" }}}1
+"-------------------------------------------------------------------------------
+" vim: expandtab shiftwidth=2 foldmethod=marker filetype=vim

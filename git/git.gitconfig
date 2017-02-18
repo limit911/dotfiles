@@ -1,0 +1,22 @@
+[user]
+	name = limit
+	email = limit@gmail.com
+[color]
+    diff = auto
+    status = auto
+    log = auto
+    branch = auto
+[alias]
+    st = status -uno
+    logs = log --oneline
+    hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+	co = checkout
+[color "status"]
+    added = green
+    changed = red bold
+    untracked = magenta bold
+[core]
+	autocrlf = input
+	safecrlf = warn
+[push]
+	default = simple
